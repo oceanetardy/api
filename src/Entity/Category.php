@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\CategoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
@@ -20,6 +22,14 @@ class Category
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $description = null;
+
+    #[ORM\OneToMany(mappedBy: 'Category', targetEntity: Product::class)]
+    private $Category;
+
+    public function __construct()
+    {
+        $this->Category = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -46,6 +56,36 @@ class Category
     public function setDescription(string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    public function getCategory(): Collection
+    {
+        return $this->Category;
+    }
+
+    public function addCategory(Product $category): self
+    {
+        if (!$this->Category->contains($category)) {
+            $this->Category[] = $category;
+            $category->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Product $category): self
+    {
+        if ($this->Category->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getCategory() === $this) {
+                $category->setCategory(null);
+            }
+        }
 
         return $this;
     }
